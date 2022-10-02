@@ -2,6 +2,7 @@ package scanner
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/rs/zerolog/log"
 	"github.com/schollz/progressbar/v3"
@@ -77,13 +78,22 @@ func (scan *VideoScanner) NextBlankFrame() int {
 	return int(scan.video.Get(gocv.VideoCapturePosFrames)) - 1
 }
 
-func (scan *VideoScanner) Encode() {
+func (scan *VideoScanner) Encode(outDir string) {
 	fmt.Println("Commands:")
 	fmt.Println("=========")
 	for idx, segment := range scan.Segments {
-		segment.OutputFn = fmt.Sprintf("%s S%dE%d.mp4", scan.series, scan.season, scan.episode+idx)
-		cmd := fmt.Sprintf(`HandBrakeCLI --preset jflix -i %s -o %s --start-at frames:%d --stop-at frames:%d --preset-import-file jflix.json`, scan.FileName, segment.OutputFn, segment.Start, segment.Start)
+		segment.OutputFn = fmt.Sprintf("%s S%02dE%02d.mp4", scan.series, scan.season, scan.episode+idx)
+		if outDir != "." {
+			segment.OutputFn = filepath.Join(outDir, segment.OutputFn)
+		}
+		cmd := fmt.Sprintf(`HandBrakeCLI --preset jflix -i "%s" -o "%s" --start-at frames:%d --stop-at frames:%d --preset-import-file jflix.json`, scan.FileName, segment.OutputFn, segment.Start, segment.End)
 		fmt.Println(cmd)
+		/*
+			out, err := exec.Command("HandBrakeCLI", "--preset", "jflix", "-i", scan.FileName, "-o", segment.OutputFn, "--start-at", fmt.Sprintf("frames:%d", segment.Start, "--stop-at", fmt.Sprintf("frames:%d", segment.End, "--preset-import-file", "jflix.json"))).Output()
+			if err != nil {
+				log.Error().Err(err).Str("Output", string(out)).Msg("failed running command")
+			}
+		*/
 	}
 }
 

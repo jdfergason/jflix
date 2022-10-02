@@ -13,6 +13,7 @@ import (
 )
 
 var (
+	dirName string
 	show    string
 	season  int
 	episode int
@@ -29,6 +30,7 @@ var rootCmd = &cobra.Command{
 		log.Info().Str("File", args[0]).Msg("Splitting video file into constituents")
 		scan := scanner.NewScanner(args[0], show, season, episode)
 		scan.FindSegments()
+		scan.Encode(dirName)
 	},
 }
 
@@ -45,5 +47,6 @@ func init() {
 	rootCmd.Flags().StringVar(&show, "show", "TV Show", "show name")
 	rootCmd.Flags().IntVarP(&season, "season", "s", 1, "season of first item in video input")
 	rootCmd.Flags().IntVarP(&episode, "episode", "e", 1, "starting episode of first item in video input")
+	rootCmd.Flags().StringVarP(&dirName, "dirName", "d", ".", "output directory name")
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 }
